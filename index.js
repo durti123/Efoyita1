@@ -1,22 +1,32 @@
 document.addEventListener("DOMContentLoaded", () => {
     const contactForm = document.getElementById("contactForm");
     const formResult = document.getElementById("formResult");
+    const contactMessage = document.getElementById("contactMessage");
+    const volunteerTriggers = document.querySelectorAll(".volunteer-trigger");
 
-    // Only run if the contact form exists on the page
+    // 1. When "Apply to Volunteer" is clicked: scroll and pre-fill the form
+    volunteerTriggers.forEach(trigger => {
+        trigger.addEventListener("click", (e) => {
+            // If you have the textarea field in your contact form, pre-fill it
+            if (contactMessage) {
+                contactMessage.value = "Hello ERSI Team,\n\nI am interested in becoming a volunteer! I would love to help out with [mentoring / community outreach / events].\n\nPlease let me know how I can get started.\n\nBest regards,";
+                contactMessage.focus(); // Places the user's cursor inside the box
+            }
+        });
+    });
+
+    // 2. Handle Contact Form Submission
     if (contactForm) {
         contactForm.addEventListener("submit", function (e) {
-            e.preventDefault(); // Prevent the page from reloading/refreshing
+            e.preventDefault(); // Prevent page reload
 
-            // 1. Show immediate loading state
             formResult.innerHTML = "Sending your message...";
-            formResult.style.color = "#4a5568"; // Neutral gray text
+            formResult.style.color = "#4a5568";
 
-            // 2. Package the form data
             const formData = new FormData(contactForm);
             const object = Object.fromEntries(formData);
             const json = JSON.stringify(object);
 
-            // 3. Send data to Web3Forms securely in the background
             fetch("https://api.web3forms.com/submit", {
                 method: "POST",
                 headers: {
@@ -29,18 +39,15 @@ document.addEventListener("DOMContentLoaded", () => {
                 let jsonResponse = await response.json();
                 
                 if (response.status === 200) {
-                    // Success state
                     formResult.innerHTML = "✓ Message sent successfully! Our team will contact you shortly.";
-                    formResult.style.color = "#0a5c53"; // Brand Teal Green
-                    contactForm.reset(); // Clear the form fields
+                    formResult.style.color = "#0a5c53"; // Teal
+                    contactForm.reset(); 
                 } else {
-                    // API Error state
                     formResult.innerHTML = jsonResponse.message || "An error occurred. Please try again.";
-                    formResult.style.color = "#e07a5f"; // Terracotta Red
+                    formResult.style.color = "#e07a5f"; // Rust
                 }
             })
             .catch(error => {
-                // Connection/Network Error state
                 console.error(error);
                 formResult.innerHTML = "Could not reach server. Please check your internet connection.";
                 formResult.style.color = "#e07a5f";
