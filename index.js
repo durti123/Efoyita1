@@ -14,7 +14,52 @@ document.addEventListener("DOMContentLoaded", () => {
             document.body.style.overflow = "hidden"; // Prevent background scrolling
         });
     });
+document.addEventListener("DOMContentLoaded", () => {
+    const contactForm = document.getElementById("contactForm");
+    const formResult = document.getElementById("formResult");
 
+    if (contactForm) {
+        contactForm.addEventListener("submit", function(e) {
+            e.preventDefault(); // Stop page from reloading
+            
+            formResult.innerHTML = "Sending... Please wait.";
+            formResult.style.color = "#4a5568";
+
+            const formData = new FormData(contactForm);
+            const object = Object.fromEntries(formData);
+            const json = JSON.stringify(object);
+
+            // Send form data in the background
+            fetch("https://api.web3forms.com/submit", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Accept": "application/json"
+                },
+                body: json
+            })
+            .then(async (response) => {
+                let jsonResponse = await response.json();
+                if (response.status === 200) {
+                    // Success!
+                    formResult.innerHTML = "✓ Message sent successfully! We will contact you soon.";
+                    formResult.style.color = "#0a5c53"; // Forest green style
+                    contactForm.reset(); // Clear the form inputs
+                } else {
+                    // Something went wrong on the API side
+                    console.log(response);
+                    formResult.innerHTML = jsonResponse.message || "An error occurred. Please try again.";
+                    formResult.style.color = "#e07a5f"; // Rust red style
+                }
+            })
+            .catch(error => {
+                console.log(error);
+                formResult.innerHTML = "Something went wrong. Check your internet connection.";
+                formResult.style.color = "#e07a5f";
+            });
+        });
+    }
+});
     // 3. Close Modal functions
     const closeModal = () => {
         modal.style.display = "none";
